@@ -96,6 +96,17 @@ func (sc *SellerController) UpdateProducts(c *gin.Context) {
 		return
 	}
 
+	userid, exists := c.Get("userID")
+	if !exists {
+		utils.RespondWithError(c, http.StatusNotFound, "user Id not found")
+		return
+	}
+
+	if userid.(uint) != product.UserID {
+		utils.RespondWithError(c, http.StatusForbidden, "You do not have permission to update this product")
+		return
+	}
+
 	var input InputProduct
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -116,4 +127,53 @@ func (sc *SellerController) UpdateProducts(c *gin.Context) {
 	}
 
 	utils.RespondWithSuccess(c, http.StatusAccepted, gin.H{"message": "successfuly updated"})
+}
+
+func (sc *SellerController) GetSingleProducts(c *gin.Context) {
+	var product models.Products
+
+	if err := sc.DB.Table("products").Where("id = ?", c.Param("id")).First(&product).Error; err != nil {
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	userid, exists := c.Get("userID")
+	if !exists {
+		utils.RespondWithError(c, http.StatusNotFound, "user Id not found")
+		return
+	}
+
+	if userid.(uint) != product.UserID {
+		utils.RespondWithError(c, http.StatusForbidden, "You do not have permission to get details this product")
+		return
+	}
+
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"product": product})
+}
+
+func (sc *SellerController) DeleteProducts(c *gin.Context) {
+	var product models.Products
+
+	if err := sc.DB.Table("products").Where("id = ?", c.Param("id")).First(&product).Error; err != nil {
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	userid, exists := c.Get("userID")
+	if !exists {
+		utils.RespondWithError(c, http.StatusNotFound, "user Id not found")
+		return
+	}
+
+	if userid.(uint) != product.UserID {
+		utils.RespondWithError(c, http.StatusForbidden, "You do not have permission to delete this product")
+		return
+	}
+
+	if err := sc.DB.Delete(&product).Error; err != nil {
+		utils.RespondWithError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.RespondWithSuccess(c, http.StatusOK, gin.H{"message": "product deleted successfully"})
 }

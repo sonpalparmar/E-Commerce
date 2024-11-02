@@ -24,7 +24,15 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, cfg config.Config) {
 	{
 		seller.POST("/addproducts", sellerController.AddProducts)
 		seller.GET("/getallproducts", sellerController.GetAllProducts)
-		seller.GET("/updateproducts/:id", sellerController.UpdateProducts)
+		seller.PUT("/updateproducts/:id", sellerController.UpdateProducts)
+		seller.GET("/getsingleproducts/:id", sellerController.GetSingleProducts)
+		seller.DELETE("/deleteproducts/:id", sellerController.DeleteProducts)
+	}
+
+	buyer := protected.Group("/buyer")
+	buyer.Use(middlewares.RoleMiddleware("Buyer"))
+	{
+
 	}
 
 }
